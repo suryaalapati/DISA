@@ -1,34 +1,40 @@
 
 import streamlit as st
 import json
+import requests
 import random
 import time
 
 st.set_page_config(page_title="Surya DISA Quiz App", layout="centered")
 
-# Load from local JSON
-with open("disa_questions_clean_final.json", "r", encoding="utf-8") as f:
-    all_questions = json.load(f)
+# Load questions from GitHub (correct path)
+@st.cache_data
+def load_questions():
+    url = "https://raw.githubusercontent.com/suryaalapati/DISA/main/disa_questions_clean.json"
+    response = requests.get(url)
+    raw_questions = response.json()
+    # Normalize keys and filter valid
+    valid = []
+    for q in raw_questions:
+        q = {k.lower(): v for k, v in q.items()}
+        if all(k in q for k in ["question", "a", "b", "c", "d", "correct"]):
+            valid.append(q)
+    return valid
 
-# Filter fully valid ones
-questions = [
-    {k.lower(): v for k, v in q.items()}
-    for q in all_questions
-    if all(k in q for k in ["a", "b", "c", "d", "correct", "question"])
-]
+questions = load_questions()
 
-# Session state setup
+if "quiz_started" not in st.session_state:
+    st.session_state.quiz_started = False
 if "current_q" not in st.session_state:
     st.session_state.current_q = 0
 if "score" not in st.session_state:
     st.session_state.score = 0
-if "quiz_started" not in st.session_state:
-    st.session_state.quiz_started = False
 if "selected" not in st.session_state:
     st.session_state.selected = None
 if "wrong_qs" not in st.session_state:
     st.session_state.wrong_qs = []
 
+st.title("🎓 Surya DISA Quiz App")
 username = st.text_input("Enter your name to begin:")
 num_qs = st.slider("How many questions?", 1, len(questions), 5)
 if st.button("Start Quiz") and username:
@@ -45,7 +51,7 @@ if st.session_state.quiz_started:
     total = len(st.session_state.qs)
     if idx < total:
         q = st.session_state.qs[idx]
-        clean_qtext = q["question"].replace("\n", " ").replace("
+        clean_qtext = q["question"].replace("\n", " ").replace("\r", " ").replace("
 ", " ").strip()
         st.markdown(f"### **Q{idx + 1}/{total}: {clean_qtext}**")
 
@@ -71,15 +77,14 @@ if st.session_state.quiz_started:
             st.session_state.current_q += 1
             st.session_state.selected = None
             st.rerun()
-
     else:
         duration = round(time.time() - st.session_state.start_time, 2)
         st.success(f"🎉 Done! Score: {st.session_state.score}/{total} in {duration} seconds.")
         if st.session_state.wrong_qs:
             st.markdown("### ❌ Review Wrong Answers")
             for wq in st.session_state.wrong_qs:
-                st.write("Q:", wq["question"])
                 correct_letter = wq["correct"].lower()
-                st.write(f"✅ Correct: {correct_letter.upper()}. {wq[correct_letter]}")
-                st.write("📘 Explanation:", wq.get("explanation", "-"))
+                st.markdown(f"**Q: {wq['question']}**")
+                st.markdown(f"✅ Correct: {correct_letter.upper()}. {wq[correct_letter]}")
+                st.markdown(f"📘 Explanation: {wq.get('explanation', '-')}")
                 st.markdown("---")
