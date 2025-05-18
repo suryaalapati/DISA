@@ -54,9 +54,8 @@ if st.session_state.quiz_started:
             q["question"]
             .replace("\n", " ")
             .replace("\r", " ")
-            .replace("
-", " ")
-            .replace("", " ")
+            .replace("\n", " ")
+            .replace("\r", " ")
             .strip()
         )
         st.markdown(f"### **Q{idx + 1}/{total}: {clean_qtext}**")
