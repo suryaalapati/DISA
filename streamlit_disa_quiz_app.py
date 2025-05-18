@@ -50,14 +50,13 @@ if st.session_state.quiz_started:
     total = len(st.session_state.qs)
     if idx < total:
         q = st.session_state.qs[idx]
-        clean_qtext = (
-            q["question"]
-            .replace("\n", " ")
-            .replace("\r", " ")
-            .replace("
-", " ")
-            .replace("", " ")
-            .strip()
+       clean_qtext = (
+    q["question"]
+    .replace("\\n", " ")
+    .replace("\\r", " ")
+    .replace("\n", " ")
+    .replace("\r", " ")
+    .strip()
         )
         st.markdown(f"### **Q{idx + 1}/{total}: {clean_qtext}**")
 
