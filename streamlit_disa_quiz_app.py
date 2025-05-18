@@ -22,30 +22,16 @@ st.markdown("Test your DISA knowledge with random MCQs.")
 if "leaderboard" not in st.session_state:
     st.session_state.leaderboard = []
 
-# UI: Get username and number of questions before starting
 username = st.text_input("Enter your name to appear on the leaderboard:")
 num_qs = st.slider("🧠 How many questions do you want?", 1, len(questions), 5)
 start_button = st.button("Start Quiz")
 
-# Safe init for session state
-if "quiz_started" not in st.session_state:
-    st.session_state.quiz_started = False
-if "current_q" not in st.session_state:
-    st.session_state.current_q = 0
-if "score" not in st.session_state:
-    st.session_state.score = 0
-if "wrong_qs" not in st.session_state:
-    st.session_state.wrong_qs = []
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-if "quiz_questions" not in st.session_state:
-    st.session_state.quiz_questions = []
-if "submitted" not in st.session_state:
-    st.session_state.submitted = False
-if "last_choice" not in st.session_state:
-    st.session_state.last_choice = ""
+# Init state
+for key in ["quiz_started", "current_q", "score", "wrong_qs", "start_time", "quiz_questions", "submitted", "last_choice"]:
+    if key not in st.session_state:
+        st.session_state[key] = 0 if key in ["current_q", "score"] else [] if key == "wrong_qs" else False if key == "quiz_started" else None
 
-# Start quiz
+# Start
 if start_button and username:
     st.session_state.quiz_started = True
     st.session_state.quiz_questions = random.sample(questions, num_qs)
@@ -63,39 +49,34 @@ if st.session_state.quiz_started and st.session_state.quiz_questions:
 
     if current_index < total_questions:
         q = quiz_questions[current_index]
-        st.markdown(f"### **Q{current_index + 1}/{total_questions}: {q['question']}**")
+        st.markdown(f"### **Q{current_index + 1}/{total_questions}: {q.get('question', '⚠️ Question missing')}**")
 
-        options_dict = {
-            "A": q.get("a", "Option A missing"),
-            "B": q.get("b", "Option B missing"),
-            "C": q.get("c", "Option C missing"),
-            "D": q.get("d", "Option D missing")
-        }
-
-        display_options = [f"{k}. {v}" for k, v in options_dict.items()]
-        selected = st.radio("Choose an option:", display_options, index=None, key=f"q{current_index}")
+        # Display all 4 options directly
+        choices = ["a", "b", "c", "d"]
+        option_labels = [f"{ch.upper()}. {q.get(ch, f'⚠️ Option {ch.upper()} missing')}" for ch in choices]
+        selected = st.radio("Choose an option:", option_labels, index=None, key=f"q{current_index}")
 
         if st.button("Submit Answer") or st.session_state.submitted:
-            correct_option = q.get("correct", "").upper()
-            correct_text = options_dict.get(correct_option, "Unknown")
-            explanation = q.get("explanation", "No explanation provided.")
-            selected_letter = selected.split(".")[0].strip().upper() if selected else ""
+            correct_key = q.get("correct", "").strip().lower()
+            selected_letter = selected.split(".")[0].strip().lower() if selected else ""
+            correct_text = q.get(correct_key, "⚠️ Correct answer text missing")
+            explanation = q.get("explanation", "⚠️ Explanation not provided.")
 
             st.session_state.submitted = True
             st.session_state.last_choice = selected_letter
 
-            if selected_letter == correct_option:
-                st.success(f"✅ Correct! {correct_option}. {correct_text}")
+            if selected_letter == correct_key:
+                st.success(f"✅ Correct! {correct_key.upper()}. {correct_text}")
                 st.session_state.score += 1
             else:
-                st.error(f"❌ Wrong. The correct answer is: {correct_option}. {correct_text}")
+                st.error(f"❌ Wrong. The correct answer is: {correct_key.upper()}. {correct_text}")
             st.info(f"📘 Explanation: {explanation}")
 
             if st.button("Next Question"):
                 st.session_state.current_q += 1
                 st.session_state.submitted = False
                 st.session_state.last_choice = ""
-                if selected_letter != correct_option:
+                if selected_letter != correct_key:
                     st.session_state.wrong_qs.append(q)
                 st.rerun()
 
@@ -114,11 +95,11 @@ if st.session_state.quiz_started and st.session_state.quiz_questions:
         if st.session_state.wrong_qs:
             st.markdown("### ❌ Review Your Wrong Answers")
             for idx, wrong_q in enumerate(st.session_state.wrong_qs, 1):
-                correct_option = wrong_q.get("correct", "").upper()
-                correct_text = wrong_q.get(correct_option.lower(), "")
-                explanation = wrong_q.get("explanation", "No explanation provided.")
-                st.markdown(f"**Q{idx}: {wrong_q['question']}**")
-                st.markdown(f"✅ **Correct Answer:** {correct_option}. {correct_text}")
+                correct_key = wrong_q.get("correct", "").strip().lower()
+                correct_text = wrong_q.get(correct_key, "⚠️ Missing option text")
+                explanation = wrong_q.get("explanation", "⚠️ Explanation not provided.")
+                st.markdown(f"**Q{idx}: {wrong_q.get('question', '⚠️ Question missing')}**")
+                st.markdown(f"✅ **Correct Answer:** {correct_key.upper()}. {correct_text}")
                 st.markdown(f"📘 **Explanation:** {explanation}")
                 st.markdown("---")
 
