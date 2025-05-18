@@ -1,6 +1,4 @@
-# Update the Streamlit app code to load the JSON directly from the GitHub raw file link
 
-streamlit_updated_code = """
 import streamlit as st
 import random
 import json
@@ -65,12 +63,3 @@ else:
         st.session_state.score = 0
         st.session_state.wrong_qs = []
         st.experimental_rerun()
-"""
-
-# Save updated code to file
-updated_file_path = "/mnt/data/streamlit_disa_quiz_app.py"
-with open(updated_file_path, "w") as f:
-    f.write(streamlit_updated_code)
-
-updated_file_path
-
