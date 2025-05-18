@@ -40,6 +40,10 @@ if "start_time" not in st.session_state:
     st.session_state.start_time = None
 if "quiz_questions" not in st.session_state:
     st.session_state.quiz_questions = []
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+if "last_choice" not in st.session_state:
+    st.session_state.last_choice = ""
 
 # Start quiz
 if start_button and username:
@@ -49,6 +53,8 @@ if start_button and username:
     st.session_state.score = 0
     st.session_state.wrong_qs = []
     st.session_state.start_time = time.time()
+    st.session_state.submitted = False
+    st.session_state.last_choice = ""
 
 if st.session_state.quiz_started and st.session_state.quiz_questions:
     quiz_questions = st.session_state.quiz_questions
@@ -57,47 +63,54 @@ if st.session_state.quiz_started and st.session_state.quiz_questions:
 
     if current_index < total_questions:
         q = quiz_questions[current_index]
-        st.markdown(f"### Q{current_index + 1}: {q['question']}")
+        st.markdown(f"### **Q{current_index + 1}/{total_questions}: {q['question']}**")
+
         options_dict = {
-            "A": q.get("a", ""),
-            "B": q.get("b", ""),
-            "C": q.get("c", ""),
-            "D": q.get("d", "")
+            "A": q.get("a", "Option A missing"),
+            "B": q.get("b", "Option B missing"),
+            "C": q.get("c", "Option C missing"),
+            "D": q.get("d", "Option D missing")
         }
 
         display_options = [f"{k}. {v}" for k, v in options_dict.items()]
-        choice = st.radio("Choose an option:", display_options, index=None)
+        selected = st.radio("Choose an option:", display_options, index=None, key=f"q{current_index}")
 
-        if st.button("Submit Answer"):
+        if st.button("Submit Answer") or st.session_state.submitted:
             correct_option = q.get("correct", "").upper()
             correct_text = options_dict.get(correct_option, "Unknown")
             explanation = q.get("explanation", "No explanation provided.")
-            selected_letter = choice.split(".")[0].strip().upper() if choice else ""
+            selected_letter = selected.split(".")[0].strip().upper() if selected else ""
+
+            st.session_state.submitted = True
+            st.session_state.last_choice = selected_letter
 
             if selected_letter == correct_option:
-                st.success("✅ Correct!")
+                st.success(f"✅ Correct! {correct_option}. {correct_text}")
                 st.session_state.score += 1
             else:
                 st.error(f"❌ Wrong. The correct answer is: {correct_option}. {correct_text}")
-                st.info(f"📘 Explanation: {explanation}")
-                st.session_state.wrong_qs.append(q)
+            st.info(f"📘 Explanation: {explanation}")
 
-            st.session_state.current_q += 1
-            st.rerun()
+            if st.button("Next Question"):
+                st.session_state.current_q += 1
+                st.session_state.submitted = False
+                st.session_state.last_choice = ""
+                if selected_letter != correct_option:
+                    st.session_state.wrong_qs.append(q)
+                st.rerun()
+
     else:
         end_time = time.time()
         total_time = round(end_time - st.session_state.start_time, 2) if st.session_state.start_time else 0
         st.success(f"🎉 Quiz complete, {username}! You scored {st.session_state.score}/{total_questions}")
         st.info(f"⏱ Time Taken: {total_time} seconds")
 
-        # Update leaderboard
         st.session_state.leaderboard.append({
             "name": username,
             "score": st.session_state.score,
             "time": total_time
         })
 
-        # Show wrong answers
         if st.session_state.wrong_qs:
             st.markdown("### ❌ Review Your Wrong Answers")
             for idx, wrong_q in enumerate(st.session_state.wrong_qs, 1):
@@ -115,16 +128,17 @@ if st.session_state.quiz_started and st.session_state.quiz_questions:
             st.session_state.score = 0
             st.session_state.wrong_qs = []
             st.session_state.start_time = time.time()
+            st.session_state.submitted = False
             st.rerun()
 
         if st.button("🔄 Restart Full Quiz"):
-            for key in ["current_q", "score", "wrong_qs", "quiz_started", "start_time", "quiz_questions"]:
+            for key in ["current_q", "score", "wrong_qs", "quiz_started", "start_time", "quiz_questions", "submitted", "last_choice"]:
                 st.session_state.pop(key, None)
             st.rerun()
 
 # Show leaderboard
 if st.session_state.leaderboard:
     st.markdown("## 🏆 Leaderboard")
-    sorted_leaderboard = sorted(st.session_state.leaderboard, key=lambda x: (-x['score'], x['time']))
-    for i, entry in enumerate(sorted_leaderboard, 1):
+    sorted_board = sorted(st.session_state.leaderboard, key=lambda x: (-x["score"], x["time"]))
+    for i, entry in enumerate(sorted_board, 1):
         st.markdown(f"**{i}. {entry['name']}** — Score: {entry['score']} | Time: {entry['time']}s")
