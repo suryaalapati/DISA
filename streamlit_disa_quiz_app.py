@@ -7,7 +7,6 @@ import time
 
 st.set_page_config(page_title="Surya DISA Quiz App", layout="centered")
 
-# Load questions from GitHub
 @st.cache_data
 def load_questions():
     url = "https://raw.githubusercontent.com/suryaalapati/DISA/main/disa_questions_clean.json"
@@ -22,7 +21,6 @@ def load_questions():
 
 questions = load_questions()
 
-# Session State Initialization
 if "quiz_started" not in st.session_state:
     st.session_state.quiz_started = False
 if "current_q" not in st.session_state:
@@ -34,7 +32,6 @@ if "selected" not in st.session_state:
 if "wrong_qs" not in st.session_state:
     st.session_state.wrong_qs = []
 
-# UI Setup
 st.title("🎓 Surya DISA Quiz App")
 username = st.text_input("Enter your name to begin:")
 num_qs = st.slider("How many questions?", 1, len(questions), 5)
@@ -53,8 +50,15 @@ if st.session_state.quiz_started:
     total = len(st.session_state.qs)
     if idx < total:
         q = st.session_state.qs[idx]
-        clean_qtext = q["question"].replace("\n", " ").replace("\r", " ").replace("
-", " ").replace("", " ").strip()
+        clean_qtext = (
+            q["question"]
+            .replace("\n", " ")
+            .replace("\r", " ")
+            .replace("
+", " ")
+            .replace("", " ")
+            .strip()
+        )
         st.markdown(f"### **Q{idx + 1}/{total}: {clean_qtext}**")
 
         options = [f"A. {q['a']}", f"B. {q['b']}", f"C. {q['c']}", f"D. {q['d']}"]
