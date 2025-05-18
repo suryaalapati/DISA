@@ -1,15 +1,19 @@
+# Update the Streamlit app code to load the JSON directly from the GitHub raw file link
 
+streamlit_updated_code = """
 import streamlit as st
 import random
 import json
+import requests
 
 st.set_page_config(page_title="Surya DISA Quiz", layout="centered")
 
-# Load questions from a local JSON file
+# Load questions from GitHub
 @st.cache_data
 def load_questions():
-    with open("sample_disa_questions.json", "r") as f:
-        return json.load(f)
+    url = "https://raw.githubusercontent.com/suryaalapati/DISA/main/disa_questions_clean.json"
+    response = requests.get(url)
+    return response.json()
 
 questions = load_questions()
 st.title("Surya DISA Quiz App")
@@ -61,3 +65,12 @@ else:
         st.session_state.score = 0
         st.session_state.wrong_qs = []
         st.experimental_rerun()
+"""
+
+# Save updated code to file
+updated_file_path = "/mnt/data/streamlit_disa_quiz_app.py"
+with open(updated_file_path, "w") as f:
+    f.write(streamlit_updated_code)
+
+updated_file_path
+
