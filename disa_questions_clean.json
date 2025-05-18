@@ -4,9 +4,9 @@
     "a": "A can identify high-risk areas that might need a detailed review later",
     "b": "allows IS auditors to independently assess risk",
     "c": "can be used as a replacement for traditional audits",
-    "d": "allows management to relinquish responsibility for control.   The correct answer is: A can identify high-risk areas that might need a detailed review  later.   Explanation: CSA is predicated on the review of high-risk areas that either need immediate  attention or a more thorough review at a later date.",
-    "correct": "b",
-    "explanation": "is incorrect, because CSA  requires the involvement of auditors and line management. What occurs is that the internal  audit function shifts some of the control monitoring responsibilities to the functional areas.  Answer C is incorrect because CSA is not a replacement for traditional audits. CSA is not  intended to replace audit's responsibilities, but to enhance them. Answer D is incorrect,  because CSA does not allow management to relinquish its responsibility for control.",
+    "d": "allows management to relinquish responsibility for control.   the",
+    "correct": "a",
+    "explanation": "csa is predicated on the review of high-risk areas that either need immediate  attention or a more thorough review at a later date.",
     "source": "DISA AT Mock Test Papers with answers.pdf"
   },
   {
